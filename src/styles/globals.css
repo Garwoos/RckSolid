@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 220 14% 95%;
+  --foreground: 220 10% 10%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 220 10% 10%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 10% 10%;
+  
+  --primary: 220 90% 20%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 220 20% 80%;
+  --secondary-foreground: 220 10% 10%;
+  
+  --muted: 220 10% 90%;
+  --muted-foreground: 220 10% 40%;
+  
+  --accent: 220 20% 80%;
+  --accent-foreground: 220 10% 10%;
+  
+  --destructive: 0 100% 40%;
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: 220 20% 85%;
+  --input: 220 20% 85%;
+  --ring: 220 90% 20%;
+  
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 220 10% 10%;
+  --foreground: 220 10% 98%;
+  
+  --card: 220 10% 15%;
+  --card-foreground: 220 10% 98%;
+  
+  --popover: 220 10% 15%;
+  --popover-foreground: 220 10% 98%;
+  
+  --primary: 220 90% 70%;
+  --primary-foreground: 220 10% 10%;
+  
+  --secondary: 220 20% 30%;
+  --secondary-foreground: 220 10% 98%;
+  
+  --muted: 220 10% 20%;
+  --muted-foreground: 220 10% 60%;
+  
+  --accent: 220 20% 30%;
+  --accent-foreground: 220 10% 98%;
+  
+  --destructive: 0 100% 40%;
+  --destructive-foreground: 220 10% 98%;
+  
+  --border: 220 20% 25%;
+  --input: 220 20% 25%;
+  --ring: 220 90% 70%;
+}
+
+body {
+  @apply bg-background text-foreground;
+  background-image: url('https://raw.githubusercontent.com/your-username/your-repo/main/public/images/malphite-bg.jpg');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+}
+
+.auth-card {
+  @apply relative overflow-hidden rounded-lg border bg-card p-8;
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(66, 73, 88, 0.4), rgba(66, 73, 88, 0.1));
+  z-index: -1;
+}
