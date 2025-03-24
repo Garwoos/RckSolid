@@ -11,7 +11,6 @@ export async function registerController(req, res) {
 
 export async function loginController(req, res) {
   try {
-    console.log('Requête reçue avec les données:', req.body); // Log des données reçues
     const token = await loginUser(req.body);
     res.status(200).json({ token });
   } catch (error) {

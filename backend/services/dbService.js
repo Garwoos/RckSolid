@@ -63,3 +63,24 @@ export async function getLinkedLolAccounts(userId) {
   const [rows] = await db.execute(query, [userId]);
   return rows;
 }
+
+export async function deletelolAccountFromUser(userId, riotid) {
+  const query = `
+    DELETE ula
+    FROM user_lol_account ula
+    JOIN lol_account la ON ula.summonerId = la.summonerId
+    WHERE ula.id_User = ? AND la.riotid = ?
+  `;
+  const [result] = await db.execute(query, [userId, riotid]);
+  return result;
+}
+
+export async function getUserGroups(userId) {
+  const query = `
+    SELECT *
+    FROM groups
+    where id_group = (select id_group from group_members where id_User = ?)
+  `;
+  const [rows] = await db.execute(query, [userId]);
+  return rows;
+}

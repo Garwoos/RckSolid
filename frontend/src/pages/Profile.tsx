@@ -3,6 +3,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Button } from "../components/ui/button"; // Import Button component
 import { Modal, ModalContent, ModalHeader, ModalFooter } from "../components/ui/modal"; // Import Modal components
+import Header from "../components/Header"; // Import Header component
 
 export default function Profile() {
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -64,14 +65,67 @@ export default function Profile() {
   const handleSaveLolAccount = async () => {
     try {
       const token = localStorage.getItem("token");
+      const [name, region] = newAccountName.split("#");
+      if (!name || !region) {
+        throw new Error("Invalid format. Use Username#Region.");
+      }
 
+      // Fetch data from Riot API
+      const encodedName = encodeURIComponent(`${name}#${region}`);
+      const accountResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/riot/summoner/${encodedName}/account`
+      );
+
+      if (!accountResponse.ok) {
+        throw new Error("Failed to fetch account information.");
+      }
+
+      const accountData = await accountResponse.json();
+
+      const summonerResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/riot/summoner/${accountData.puuid}`
+      );
+
+      if (!summonerResponse.ok) {
+        throw new Error("Failed to fetch summoner information.");
+      }
+
+      const summonerData = await summonerResponse.json();
+
+      const ranksResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/riot/summoner/${summonerData.id}/ranks`
+      );
+
+      if (!ranksResponse.ok) {
+        throw new Error("Failed to fetch rank information.");
+      }
+
+      const ranksData = await ranksResponse.json();
+
+      // Link the account to the user
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/db/lolAccountToUser`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ riotid: newAccountName, id_User: userInfo?.id_User }), // Pass id_User
+        body: JSON.stringify({
+          riotid: `${name}#${region}`,
+          id_User: userInfo?.id_User,
+          leagueId: ranksData[0]?.leagueId || "",
+          summonerId: summonerData.id,
+          puuid: summonerData.puuid,
+          leaguePoints: ranksData[0]?.leaguePoints || 0,
+          rank: ranksData[0]?.rank || "",
+          tier: ranksData[0]?.tier || "",
+          losses: ranksData[0]?.losses || 0,
+          wins: ranksData[0]?.wins || 0,
+          hotStreak: ranksData[0]?.hotStreak || false,
+          freshBlood: ranksData[0]?.freshBlood || false,
+          veteran: ranksData[0]?.veteran || false,
+          inactive: ranksData[0]?.inactive || false,
+          region_lol_account: region,
+        }),
       });
 
       if (!response.ok) {
@@ -104,6 +158,44 @@ export default function Profile() {
     setNewAccountName("");
   };
   
+  const handleDeleteLolAccount = async (riotid: string) => {
+    try {
+      const token = localStorage.getItem("token");
+  
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/db/lolAccountToUser`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          riotid,
+          userId: userInfo?.id_User,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to delete LoL account.");
+      }
+  
+      // Fetch the updated list of linked accounts
+      const accountsResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/db/lolAccounts/${userInfo?.id_User}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!accountsResponse.ok) {
+        throw new Error("Failed to fetch updated linked LoL accounts.");
+      }
+  
+      const accountsData = await accountsResponse.json();
+      setLolAccounts(accountsData);
+    } catch (err: any) {
+      console.error(err.message || "An error occurred while deleting the LoL account.");
+    }
+  };
+  
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -114,7 +206,9 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardContent className="p-6 flex items-center gap-4">
@@ -138,7 +232,14 @@ export default function Profile() {
           <h3 className="text-lg font-bold mb-4">Linked LoL Accounts:</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {lolAccounts.map((account) => (
-              <Card key={account.summonerId} className="p-4">
+              <Card key={account.summonerId} className="p-4 relative">
+                <button
+                  onClick={() => handleDeleteLolAccount(account.riotid)}
+                  className="absolute top-4 right-4 flex items-center justify-center w-6 h-6 rounded-md border-2 border-red-500 bg-white text-red-500 transition-transform duration-200 hover:scale-125"
+                  aria-label="Delete account"
+                >
+                  <p className="text-xs font-normal font-bold">X</p>
+                </button>
                 <div className="flex flex-col items-center">
                   <img
                     src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${account.tier.toLowerCase()}.png`}
@@ -194,6 +295,7 @@ export default function Profile() {
           </ModalContent>
         </Modal>
       )}
+      </div>
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { Box } from "./screens/Box";
 import Login from "./pages/Login"; // Import de la page Login
 import Register from "./pages/Register"; // Import de la page Register
 import Profile from "./pages/Profile"; // Import de la page Profile
+import Groups from "./pages/Groups"; // Import de la page Groups
+
 
 createRoot(document.getElementById("app") as HTMLElement).render(
   <StrictMode>
@@ -14,6 +16,7 @@ createRoot(document.getElementById("app") as HTMLElement).render(
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} /> {/* Add this line */}
         <Route path="/profile" element={<Profile />} /> {/* Add this line */}
+        <Route path="/groups" element={<Groups />} /> {/* Add this line */}
       </Routes>
     </BrowserRouter>
   </StrictMode>,
