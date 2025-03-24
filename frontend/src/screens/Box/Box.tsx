@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Header from "../../components/Header"; // Import the Header component
 import {
   Avatar,
   AvatarFallback,
@@ -28,6 +29,40 @@ export const Box = (): JSX.Element => {
       }
 
       console.log(`Recherche pour le summoner: ${name}, région: ${region}`);
+
+      // Check if the account exists in the database and if the data is recent
+      const dbAccountResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/db/lolAccount/${encodeURIComponent(`${name}#${region}`)}`
+      );
+
+      if (dbAccountResponse.ok) {
+        const dbAccountData = await dbAccountResponse.json();
+        const lastChecked = new Date(dbAccountData.riot_api_last_checked);
+        const now = new Date();
+
+        console.log("Données récupérées depuis la base de données:", dbAccountData);
+
+        // If the data is less than 5 minutes old, use it
+        if ((now.getTime() - lastChecked.getTime()) / 1000 < 300) {
+          console.log("Using cached data from the database.");
+          setSummonerInfo({
+            ...dbAccountData,
+            ranks: [
+              {
+                queueType: "RANKED_SOLO_5x5",
+                tier: dbAccountData.tier,
+                rank: dbAccountData.rank,
+                leaguePoints: dbAccountData.leaguePoints,
+                wins: dbAccountData.wins,
+                losses: dbAccountData.losses,
+              },
+            ],
+          });
+          return;
+        }
+      }
+
+      // Fetch data from Riot API if not recent
       const encodedName = encodeURIComponent(`${name}#${region}`);
       const accountResponse = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/riot/summoner/${encodedName}/account`
@@ -68,6 +103,39 @@ export const Box = (): JSX.Element => {
       const ranksData = await ranksResponse.json();
       console.log('Données des rangs reçues:', ranksData);
 
+      // Add or update account in the database
+      const addAccountResponse = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/db/lolAccount`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            riotid: `${name}#${region}`,
+            leagueId: ranksData[0]?.leagueId || "",
+            summonerId: summonerData.id,
+            puuid: summonerData.puuid,
+            leaguePoints: ranksData[0]?.leaguePoints || 0,
+            rank: ranksData[0]?.rank || "",
+            tier: ranksData[0]?.tier || "",
+            losses: ranksData[0]?.losses || 0,
+            wins: ranksData[0]?.wins || 0,
+            hotStreak: ranksData[0]?.hotStreak || false,
+            freshBlood: ranksData[0]?.freshBlood || false,
+            veteran: ranksData[0]?.veteran || false,
+            inactive: ranksData[0]?.inactive || false,
+            region_lol_account: region,
+          }),
+        }
+      );
+
+      if (!addAccountResponse.ok) {
+        const errorText = await addAccountResponse.text();
+        console.error('Erreur lors de l\'ajout du compte:', addAccountResponse.status, errorText);
+        throw new Error("Impossible d'ajouter le compte à la base de données.");
+      }
+
+      console.log('Compte ajouté ou déjà existant dans la base de données.');
+
       setSummonerInfo({
         ...summonerData,
         ranks: ranksData,
@@ -84,7 +152,7 @@ export const Box = (): JSX.Element => {
   const summoners = [
     { id: 1, name: "Summoner 1", lp: 50, rank: "Master" },
     { id: 2, name: "Summoner 2", lp: 100, rank: "Master" },
-    { id: 3, name: "Summoner 3", lp: 10, rank: "For 4" },
+    { id: 3, name: "Summoner 3", lp: 10, rank: "Fer 4" },
     { id: 4, name: "Summoner 4", lp: 1000, rank: "GrandMaster"},
     { id: 5, name: "Summoner 5", lp: 180, rank: "Master" },
     { id: 6, name: "Summoner 6", lp: 103, rank: "Master" },
@@ -92,28 +160,14 @@ export const Box = (): JSX.Element => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="flex justify-between items-center p-4 border-b">
-        <Avatar className="h-10 w-10">
-          <AvatarImage src="/avatar.png" alt="Profile" />
-          <AvatarFallback>RS</AvatarFallback>
-        </Avatar>
-        <div className="flex gap-4 items-center">
-          <Button variant="link">Link</Button>
-          <Button variant="outline" onClick={() => navigate("/login")}>
-            Sign In
-          </Button>
-        </div>
-      </header>
-
-      {/* Main Content */}
+      <Header /> {/* Use the Header component */}
       <main className="flex-1 flex flex-col items-center justify-center p-6">
         <div className="max-w-md w-full mx-auto text-center mb-12">
           <h1 className="text-4xl font-bold mb-2 font-heading">RckSolid</h1>
           <p className="text-xl text-muted-foreground mb-6">View your rank</p>
           <div className="flex gap-2">
             <Input
-              placeholder="Username#EUW"
+              placeholder="Le Capybara#EUW"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="bg-muted/50"
@@ -130,19 +184,28 @@ export const Box = (): JSX.Element => {
           <div className="max-w-md w-full mx-auto text-center mb-12">
             <h2 className="text-lg font-semibold mb-4">Ranked Data</h2>
             <ul className="text-left">
-              {summonerInfo.ranks.map((rank: any, index: number) => (
-                <li key={index} className="mb-2">
-                  <p>
-                    <strong>Queue:</strong> {rank.queueType}
-                  </p>
-                  <p>
-                    <strong>Tier:</strong> {rank.tier} {rank.rank} - {rank.leaguePoints} LP
-                  </p>
-                  <p>
-                    <strong>Wins:</strong> {rank.wins} | <strong>Losses:</strong> {rank.losses}
-                  </p>
-                </li>
-              ))}
+              {summonerInfo.ranks
+                .filter((rank: any) => rank.queueType !== "RANKED_FLEX_SR")
+                .map((rank: any, index: number) => (
+                  <li key={index} className="mb-4 flex items-center gap-4">
+                    {/* Icône du rang */}
+                    <img
+                      src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${rank.tier.toLowerCase()}.png`}
+                      alt={`${rank.tier} Icon`}
+                    />
+                    <div>
+                      <p>
+                        <strong>Queue:</strong> {rank.queueType}
+                      </p>
+                      <p>
+                        <strong>Tier:</strong> {rank.tier} {rank.rank} - {rank.leaguePoints} LP
+                      </p>
+                      <p>
+                        <strong>Wins:</strong> {rank.wins} | <strong>Losses:</strong> {rank.losses}
+                      </p>
+                    </div>
+                  </li>
+                ))}
             </ul>
           </div>
         )}
@@ -167,11 +230,13 @@ export const Box = (): JSX.Element => {
                     {summonerInfo.ranks && (
                       <div className="mt-2">
                         <p className="text-sm font-medium">Ranks:</p>
-                        {summonerInfo.ranks.map((rank: any, index: number) => (
-                          <p key={index} className="text-sm text-muted-foreground">
-                            {rank.queueType}: {rank.tier} {rank.rank} - {rank.leaguePoints} LP
-                          </p>
-                        ))}
+                        {summonerInfo.ranks
+                          .filter((rank: any) => rank.queueType !== "RANKED_FLEX_SR")
+                          .map((rank: any, index: number) => (
+                            <p key={index} className="text-sm text-muted-foreground">
+                              {rank.queueType}: {rank.tier} {rank.rank} - {rank.leaguePoints} LP
+                            </p>
+                          ))}
                       </div>
                     )}
                   </div>

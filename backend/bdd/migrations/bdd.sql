@@ -1,44 +1,11 @@
 -- Compte utilisateur
-CREATE TABLE IF NOT EXISTS User (
+CREATE TABLE IF NOT EXISTS Users (
   id_User VARCHAR(100) PRIMARY KEY, 
   mail_User VARCHAR(100) NOT NULL UNIQUE,
   password_User VARCHAR(100) NOT NULL,
-  name_User VARCHAR(100) NOT NULL
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- TIMESTAMPTZ remplacé par DATETIME
+  name_User VARCHAR(100) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP -- TIMESTAMPTZ remplacé par DATETIME
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- Ajout de la colonne created_at pour la date de création du compte
--- La colonne created_at est ajoutée avec une valeur par défaut de l'horodatage actuel
-ALTER TABLE User
-ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP;
-
-/*leagueId: "028097a5-db34-4bfe-b79a-15f719dbd028", queueType: "RANKED_SOLO_5x5", tier: "PLATINUM", … }
-​​
-freshBlood: false
-​​
-hotStreak: false
-​​
-inactive: false
-​​
-leagueId: "028097a5-db34-4bfe-b79a-15f719dbd028"
-​​
-leaguePoints: 55
-​​
-losses: 15
-​​
-puuid: "BDOlvNmcRHM0TOcn9rSpiOOhAdrYfVejrwmrxjABNTydFW_gzlJwPy9RaBxvU9KP_kW-fiwQA9187g"
-​​
-queueType: "RANKED_SOLO_5x5"
-​​
-rank: "IV"
-​​
-summonerId: "SK4mJycK8i9bnt7lR5X3ATf0kERWz0lov5MdBOpn9P73O_Fs"
-​​
-tier: "PLATINUM"
-​​
-veteran: false
-​​
-wins: 20*/
 
 -- Comptes LOL
 CREATE TABLE IF NOT EXISTS lol_account (
@@ -47,7 +14,7 @@ CREATE TABLE IF NOT EXISTS lol_account (
   summonerId VARCHAR(100) NOT NULL UNIQUE,
   puuid VARCHAR(100) NOT NULL UNIQUE,
   leaguePoints INT NOT NULL, -- Correction ici
-  rank VARCHAR(10) NOT NULL,
+  `rank` VARCHAR(10) NOT NULL, -- Enclosed in backticks to avoid syntax error
   tier VARCHAR(10) NOT NULL,
   losses INT NOT NULL, -- Correction ici
   wins INT NOT NULL, -- Correction ici
@@ -57,13 +24,20 @@ CREATE TABLE IF NOT EXISTS lol_account (
   inactive BOOLEAN NOT NULL,
   region_lol_account VARCHAR(4) NOT NULL,
   added_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- TIMESTAMPTZ remplacé par DATETIME
-  riot_api_last_checked DATETIME DEFAULT CURRENT_TIMESTAMP -- Attribut pour stocker la dernière vérification avec l'API Riot
+  riot_api_last_checked DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Update timestamp on data change
+  INDEX (riotid) -- Added index to resolve foreign key constraint issue
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Ajout de la colonne added_at pour la date d'ajout du compte LOL
--- La colonne added_at est ajoutée avec une valeur par défaut de l'horodatage actuel
-ALTER TABLE lol_account
-ADD COLUMN added_at DATETIME DEFAULT CURRENT_TIMESTAMP;
+-- Table des comptes lol liés aux utilisateurs
+CREATE TABLE IF NOT EXISTS user_lol_account (
+  id_user_lol_account VARCHAR(100) PRIMARY KEY, 
+  summonerId VARCHAR(100) NOT NULL UNIQUE,
+  id_User VARCHAR(100) NOT NULL,
+  FOREIGN KEY (summonerId) REFERENCES lol_account(summonerId) ON DELETE CASCADE,
+  FOREIGN KEY (id_User) REFERENCES Users(id_User) ON DELETE CASCADE
+  -- Contrainte d'unicité
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 -- Table des groupes
 CREATE TABLE IF NOT EXISTS group_lol (
@@ -72,7 +46,7 @@ CREATE TABLE IF NOT EXISTS group_lol (
   description_group TEXT,
   created_by_User VARCHAR(100) NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- TIMESTAMPTZ remplacé par DATETIME
-  FOREIGN KEY (created_by_User) REFERENCES User(id_User) ON DELETE CASCADE
+  FOREIGN KEY (created_by_User) REFERENCES Users(id_User) ON DELETE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Table des membres des groupes
@@ -83,7 +57,7 @@ CREATE TABLE IF NOT EXISTS group_members (
   riotid VARCHAR(100) NOT NULL,
   joined_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- TIMESTAMPTZ remplacé par DATETIME
   FOREIGN KEY (group_id) REFERENCES group_lol(id_group) ON DELETE CASCADE,
-  FOREIGN KEY (id_account) REFERENCES User(id_User) ON DELETE CASCADE,
+  FOREIGN KEY (id_account) REFERENCES Users(id_User) ON DELETE CASCADE,
   FOREIGN KEY (riotid) REFERENCES lol_account(riotid) ON DELETE CASCADE,
   -- Contraintes d'unicité
   UNIQUE (id_group_members, group_id, id_account), -- Un seul membre par groupe
