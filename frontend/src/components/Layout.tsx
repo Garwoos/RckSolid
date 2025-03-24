@@ -35,16 +35,16 @@ export default function Layout() {
                   </Avatar>
                 </Link>
                 <Button variant="outline" onClick={handleSignOut}>
-                  Déconnexion
+                  log off
                 </Button>
               </>
             ) : (
               <>
                 <Link to="/login">
-                  <Button variant="outline">Connexion</Button>
+                  <Button variant="outline">log in</Button>
                 </Link>
                 <Link to="/register">
-                  <Button>S'inscrire</Button>
+                  <Button>log in</Button>
                 </Link>
               </>
             )}

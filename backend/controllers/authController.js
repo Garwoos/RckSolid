@@ -1,4 +1,4 @@
-import { registerUser, loginUser, getAllUsers } from '../services/authService.js';
+import { registerUser, loginUser, getAllUsers, getUserInfoById } from '../services/authService.js';
 
 export async function registerController(req, res) {
   try {
@@ -26,6 +26,19 @@ export async function getAllUsersController(req, res) {
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ error: error.message || 'Authentication failed' });
+  }
+}
+
+export async function getUserInfoByIdController(req, res) {
+  try {
+    if (!req.user || !req.user.id) {
+      throw new Error('User ID is missing in the request.');
+    }
+    const user = await getUserInfoById(req.user.id); // Passez l'ID utilisateur correctement
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching user info:', error.message);
+    res.status(500).json({ error: error.message || 'Failed to fetch user info.' });
   }
 }
 

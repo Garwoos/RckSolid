@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 
@@ -8,9 +7,9 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,10 +22,22 @@ export default function Register() {
     try {
       setError('');
       setLoading(true);
-      await signUp(email, password);
-      navigate('/');
-    } catch (err) {
-      setError('Échec de l\'inscription. Veuillez réessayer.');
+
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || 'Échec de l\'inscription.');
+      }
+
+      console.log('Inscription réussie.');
+      navigate('/login');
+    } catch (err: any) {
+      setError(err.message || 'Une erreur est survenue.');
     } finally {
       setLoading(false);
     }
@@ -50,6 +61,20 @@ export default function Register() {
               {error}
             </div>
           )}
+
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium">
+              Nom
+            </label>
+            <Input
+              id="name"
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1"
+            />
+          </div>
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium">
