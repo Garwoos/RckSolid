@@ -1,4 +1,4 @@
-import { getAllUsers, addLolAccount, getLolAccountById, addLolAccountToUser, getLinkedLolAccounts, deletelolAccountFromUser } from '../services/dbService.js'; // Assurez-vous que le chemin est correct
+import { getAllUsers, addLolAccount, getLolAccountById, addLolAccountToUser, getLinkedLolAccounts, deletelolAccountFromUser, createGroup, getUserGroups } from '../services/dbService.js'; // Assurez-vous que le chemin est correct
 
 export async function getAllUsersController(req, res) { // Assurez-vous que cette fonction est bien exportée
     try {
@@ -113,19 +113,69 @@ export async function deletelolAccountFromUserController(req, res) {
 export async function getUserGroupsController(req, res) {
   try {
     const userId = req.params.userId;
-    // Logique pour récupérer les groupes de l'utilisateur
+
     if (!userId) {
-      throw new Error("User ID is required.");
+      return res.status(400).json({ message: "User ID is required." });
     }
-    // Remplacez cette logique par la récupération réelle des groupes de l'utilisateur
+
     const groups = await getUserGroups(userId);
-    if (!groups) {
+    console.log("Fetched groups for user:", groups); // Log pour vérifier les données
+
+    if (!groups || groups.length === 0) {
       return res.status(404).json({ message: "No groups found for this user." });
     }
-    const userGroups = groups.map(group => group.name);
-    return res.status(200).json(userGroups);
+
+    res.status(200).json(groups);
   } catch (error) {
     console.error("Error fetching user groups:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function createGroupController(req, res) {
+  try {
+    const { name, description, userId } = req.body;
+
+    if (!name || !userId) {
+      return res.status(400).json({ message: "Group name and user ID are required." });
+    }
+
+    const result = await createGroup(name, description, userId); // Appel au service
+    res.status(201).json(result);
+  } catch (error) {
+    console.error("Error creating group:", error.message); // Ajoutez un log pour capturer les erreurs
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function getGroupByIdController(req, res) {
+  try {
+    const groupId = req.params.id;
+
+    if (!groupId) {
+      return res.status(400).json({ message: "Group ID is required." });
+    }
+
+    const group = await getGroup(groupId);
+    res.status(200).json(group);
+  } catch (error) {
+    console.error("Error fetching group:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function getAlllolAccountFromUserFromGroupController(req, res) {
+  try {
+    const { userId, groupId } = req.params;
+
+    if (!userId || !groupId) {
+      return res.status(400).json({ message: "User ID and Group ID are required." });
+    }
+
+    const accounts = await getAlllolAccountFromUserFromGroup(userId, groupId);
+    res.status(200).json(accounts);
+  } catch (error) {
+    console.error("Error fetching accounts:", error.message);
     res.status(500).json({ error: error.message });
   }
 }

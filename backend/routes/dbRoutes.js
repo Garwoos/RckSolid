@@ -1,5 +1,6 @@
 import express from 'express';
-import { addLolAccountToUserController, getAllUsersController, addLolAccountController, getLolAccountByIdController, getLinkedLolAccountsController, deletelolAccountFromUserController } from '../controllers/dbController.js'; // Assurez-vous que le chemin est correct
+import { addLolAccountToUserController, getAllUsersController, addLolAccountController, getLolAccountByIdController, getLinkedLolAccountsController, deletelolAccountFromUserController, createGroupController, getUserGroupsController } from '../controllers/dbController.js'; // Assurez-vous que le chemin est correct
+import { getGroup } from '../services/dbService.js';
 
 const router = express.Router();
 
@@ -32,10 +33,23 @@ router.get('/lolAccount/:userId', getLinkedLolAccountsController); // Utilisatio
 router.delete('/lolAccountToUser', deletelolAccountFromUserController);
 
 // Route pour trouver les groupes d'un utilisateur
-router.get('/userGroups/:userId', (req, res) => {
-  const userId = req.params.userId;
-  // Logique pour récupérer les groupes de l'utilisateur
-  res.status(200).json({ message: `Groupes de l'utilisateur ${userId}` });
+router.get('/userGroups/:userId', getUserGroupsController); // Utilisez le contrôleur ici
+
+// Route pour créer un groupe
+router.post('/createGroup', createGroupController); // Utilisez le contrôleur ici
+
+// Route pour trouver un groupe par son id
+router.get('/group/:groupId', (req, res) => {
+  const { groupId } = req.params;
+
+  // Ensure groupId is passed as a string
+  if (!groupId) {
+    return res.status(400).json({ error: "Group ID is required." });
+  }
+
+  getGroup(String(groupId))
+    .then((group) => res.status(200).json(group))
+    .catch((error) => res.status(500).json({ error: error.message }));
 });
 
 export default router;

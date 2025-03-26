@@ -38,7 +38,6 @@ CREATE TABLE IF NOT EXISTS user_lol_account (
   -- Contrainte d'unicité
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
 -- Table des groupes
 CREATE TABLE IF NOT EXISTS group_lol (
   id_group VARCHAR(100) PRIMARY KEY, 
@@ -54,12 +53,9 @@ CREATE TABLE IF NOT EXISTS group_members (
   id_group_members VARCHAR(100) PRIMARY KEY, 
   group_id VARCHAR(100) NOT NULL,
   id_account VARCHAR(100) NOT NULL,
-  riotid VARCHAR(100) NOT NULL,
   joined_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- TIMESTAMPTZ remplacé par DATETIME
   FOREIGN KEY (group_id) REFERENCES group_lol(id_group) ON DELETE CASCADE,
   FOREIGN KEY (id_account) REFERENCES Users(id_User) ON DELETE CASCADE,
-  FOREIGN KEY (riotid) REFERENCES lol_account(riotid) ON DELETE CASCADE,
-  -- Contraintes d'unicité
-  UNIQUE (id_group_members, group_id, id_account), -- Un seul membre par groupe
-  UNIQUE (id_group_members, riotid) -- Plusieurs lol_account possibles par groupe
+    -- Contraintes d'unicité
+  UNIQUE (id_group_members, group_id, id_account) -- Un seul membre par groupe
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;

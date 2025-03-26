@@ -3,12 +3,16 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
+import { Modal, ModalContent, ModalHeader, ModalFooter } from "../components/ui/modal"; // Import Modal components
 
 export default function Groups() {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupDescription, setNewGroupDescription] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,7 +37,7 @@ export default function Groups() {
         const userData = await userResponse.json();
         setUserId(userData.id_User);
 
-        // Fetch user groups
+        // Fetch groups the user has joined
         const groupsResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/db/userGroups/${userData.id_User}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -45,6 +49,7 @@ export default function Groups() {
         }
 
         const groupsData = await groupsResponse.json();
+        console.log("Fetched groups data:", groupsData); // Log pour vérifier les noms des propriétés
         setGroups(groupsData);
       } catch (err: any) {
         setError(err.message || "An error occurred.");
@@ -57,11 +62,64 @@ export default function Groups() {
   }, []);
 
   const handleCreateGroup = () => {
-    navigate("/create-group"); // Redirige vers une page pour créer un groupe
+    setShowCreateGroupModal(true); // Open the modal directly
   };
 
   const handleViewGroup = (groupId: string) => {
-    navigate(`/group/${groupId}`); // Redirige vers la page du groupe
+    navigate(`/group/${groupId}`); // Ensure the groupId is passed correctly
+  };
+
+  const handleOpenCreateGroupModal = () => {
+    setShowCreateGroupModal(true);
+  };
+
+  const handleCloseCreateGroupModal = () => {
+    setShowCreateGroupModal(false);
+    setNewGroupName("");
+    setNewGroupDescription("");
+  };
+
+  const handleSaveGroup = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/db/createGroup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: newGroupName,
+          description: newGroupDescription,
+          userId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create group.");
+      }
+
+      console.log("Group created successfully."); // Log pour confirmer la création
+      // Refresh groups list
+      const groupsResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/db/userGroups/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!groupsResponse.ok) {
+        throw new Error("Failed to fetch updated groups.");
+      }
+
+      const groupsData = await groupsResponse.json();
+      setGroups(groupsData);
+
+      handleCloseCreateGroupModal();
+    } catch (err: any) {
+      console.error("Error:", err.message); // Log des erreurs
+      setError(err.message || "An error occurred while creating the group.");
+    }
   };
 
   if (loading) {
@@ -91,8 +149,8 @@ export default function Groups() {
                 groups.map((group) => (
                   <Card key={group.id_group} className="p-4 w-full">
                     <CardContent>
-                      <h2 className="text-lg font-bold mb-2">{group.name}</h2>
-                      <p className="text-sm text-muted-foreground mb-4">{group.description}</p>
+                      <h2 className="text-lg font-bold mb-2">{group.name_groups}</h2> {/* Utilisez name_groups */}
+                      <p className="text-sm text-muted-foreground mb-4">{group.description_group}</p> {/* Utilisez description_group */}
                       <Button
                         onClick={() => handleViewGroup(group.id_group)}
                         className="bg-green-500 text-white hover:bg-green-600"
@@ -106,6 +164,47 @@ export default function Groups() {
           )}
         </div>
       </main>
+
+      {showCreateGroupModal && (
+        <Modal onClose={handleCloseCreateGroupModal}>
+          <ModalContent>
+            <ModalHeader>
+              <h2 className="text-lg font-bold">Créer un Groupe</h2>
+            </ModalHeader>
+            <div className="p-4">
+              <label htmlFor="groupName" className="block text-sm font-medium mb-2">
+                Nom du Groupe
+              </label>
+              <input
+                id="groupName"
+                type="text"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                className="w-full p-2 border rounded mb-4"
+                placeholder="Entrez le nom du groupe"
+              />
+              <label htmlFor="groupDescription" className="block text-sm font-medium mb-2">
+                Description
+              </label>
+              <textarea
+                id="groupDescription"
+                value={newGroupDescription}
+                onChange={(e) => setNewGroupDescription(e.target.value)}
+                className="w-full p-2 border rounded"
+                placeholder="Entrez une description"
+              />
+            </div>
+            <ModalFooter>
+              <Button onClick={handleSaveGroup} className="mr-2">
+                Enregistrer
+              </Button>
+              <Button onClick={handleCloseCreateGroupModal} variant="secondary">
+                Annuler
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      )}
     </div>
   );
 }
