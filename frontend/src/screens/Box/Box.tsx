@@ -148,15 +148,6 @@ export const Box = (): JSX.Element => {
     }
   };
 
-  // Data for summoner cards
-  const summoners = [
-    { id: 1, name: "Summoner 1", lp: 50, rank: "Master" },
-    { id: 2, name: "Summoner 2", lp: 100, rank: "Master" },
-    { id: 3, name: "Summoner 3", lp: 10, rank: "Fer 4" },
-    { id: 4, name: "Summoner 4", lp: 1000, rank: "GrandMaster"},
-    { id: 5, name: "Summoner 5", lp: 180, rank: "Master" },
-    { id: 6, name: "Summoner 6", lp: 103, rank: "Master" },
-  ];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -246,38 +237,7 @@ export const Box = (): JSX.Element => {
           </div>
         )}
 
-        <div className="w-full max-w-4xl mx-auto">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-1">Your friends ranking</h2>
-            <p className="text-muted-foreground">They are sooo bad</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {summoners.map((summoner) => (
-              <Card key={summoner.id} className="overflow-hidden">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage
-                      src={`/summoner-${summoner.id}.png`}
-                      alt={summoner.name}
-                    />
-                    <AvatarFallback>{summoner.id}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="font-medium">{summoner.name}</p>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">
-                        {summoner.lp} LP
-                      </span>
-                      <span className="mx-1">•</span>
-                      <span>{summoner.rank}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+      
       </main>
 
       {/* Footer */}

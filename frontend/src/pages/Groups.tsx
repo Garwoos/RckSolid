@@ -130,6 +130,28 @@ export default function Groups() {
     return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
   }
 
+  if (Array.isArray(groups) && groups.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 p-6">
+          <div className="max-w-6xl mx-auto text-center">
+            <h1 className="text-2xl font-bold mb-4">Mes Groupes</h1>
+            <p className="text-muted-foreground mb-6">
+              Vous n'avez pas encore rejoint ou créé de groupes.
+            </p>
+            <Button
+              onClick={handleCreateGroup}
+              className="bg-blue-500 text-white hover:bg-blue-600"
+            >
+              Créer un Groupe
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />

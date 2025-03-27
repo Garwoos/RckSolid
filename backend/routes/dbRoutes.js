@@ -1,6 +1,6 @@
 import express from 'express';
-import { addLolAccountToUserController, getAllUsersController, addLolAccountController, getLolAccountByIdController, getLinkedLolAccountsController, deletelolAccountFromUserController, createGroupController, getUserGroupsController } from '../controllers/dbController.js'; // Assurez-vous que le chemin est correct
-import { getGroup } from '../services/dbService.js';
+import { addLolAccountToUserController, getAllUsersController, addLolAccountController, getLolAccountByIdController, getLinkedLolAccountsController, deletelolAccountFromUserController, createGroupController, getUserGroupsController, getGroupMembersController } from '../controllers/dbController.js'; // Assurez-vous que le chemin est correct
+import { getGroup, getAllLolAccountsFromGroup, addUserToGroup } from '../services/dbService.js'; // Added addUserToGroup
 
 const router = express.Router();
 
@@ -50,6 +50,43 @@ router.get('/group/:groupId', (req, res) => {
   getGroup(String(groupId))
     .then((group) => res.status(200).json(group))
     .catch((error) => res.status(500).json({ error: error.message }));
+});
+
+// route pour trouver tous les utilisateurs d'un groupe
+router.get('/group/:groupId/users', getGroupMembersController); // Use the controller directly
+
+// route pour recuperer les comptes lol d'un groupe
+router.get('/group/:groupId/lolAccounts', async (req, res) => {
+  const { groupId } = req.params;
+
+  if (!groupId) {
+    return res.status(400).json({ error: "Group ID is required." });
+  }
+
+  try {
+    const accounts = await getAllLolAccountsFromGroup(groupId); // Call the service
+    res.status(200).json(accounts);
+  } catch (error) {
+    console.error("Error fetching LoL accounts for group:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+}); 
+
+// route pour ajouter un utilisateur à un groupe
+router.post('/group/:groupId/user/:name_User', async (req, res) => {
+  const { groupId, name_User } = req.params;
+
+  if (!groupId || !name_User) {
+    return res.status(400).json({ message: "Group ID and User name are required." });
+  }
+
+  try {
+    const result = await addUserToGroup(name_User, groupId); // Call the service
+    res.status(201).json(result);
+  } catch (error) {
+    console.error("Error adding group member:", error.message);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 export default router;

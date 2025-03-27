@@ -1,4 +1,4 @@
-import { getAllUsers, addLolAccount, getLolAccountById, addLolAccountToUser, getLinkedLolAccounts, deletelolAccountFromUser, createGroup, getUserGroups } from '../services/dbService.js'; // Assurez-vous que le chemin est correct
+import { getAllUsers, addLolAccount, getLolAccountById, addLolAccountToUser, getLinkedLolAccounts, deletelolAccountFromUser, createGroup, getUserGroups, getGroupMembers } from '../services/dbService.js'; // Added getGroupMembers
 
 export async function getAllUsersController(req, res) { // Assurez-vous que cette fonction est bien exportée
     try {
@@ -119,13 +119,10 @@ export async function getUserGroupsController(req, res) {
     }
 
     const groups = await getUserGroups(userId);
-    console.log("Fetched groups for user:", groups); // Log pour vérifier les données
+    console.log("Fetched groups for user:", groups);
 
-    if (!groups || groups.length === 0) {
-      return res.status(404).json({ message: "No groups found for this user." });
-    }
-
-    res.status(200).json(groups);
+    // Always return a 200 status with an empty array if no groups are found
+    res.status(200).json(groups || []);
   } catch (error) {
     console.error("Error fetching user groups:", error.message);
     res.status(500).json({ error: error.message });
@@ -176,6 +173,38 @@ export async function getAlllolAccountFromUserFromGroupController(req, res) {
     res.status(200).json(accounts);
   } catch (error) {
     console.error("Error fetching accounts:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function getGroupMembersController(req, res) {
+  try {
+    const { groupId } = req.params; // Correctly retrieve groupId from request parameters
+
+    if (!groupId) {
+      return res.status(400).json({ message: "Group ID is required." });
+    }
+
+    const members = await getGroupMembers(groupId); // Pass groupId to the service
+    res.status(200).json(members);
+  } catch (error) {
+    console.error("Error fetching group members:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function addUserToGroupController(req, res) {
+  try {
+    const { name_User, groupId } = req.body;
+
+    if (!name_User || !groupId) {
+      return res.status(400).json({ message: "User name and Group ID are required." });
+    }
+
+    const result = await addUserToGroup(name_User, groupId);
+    res.status(201).json(result);
+  } catch (error) {
+    console.error("Error adding user to group:", error.message);
     res.status(500).json({ error: error.message });
   }
 }
