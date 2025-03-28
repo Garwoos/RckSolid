@@ -5,7 +5,12 @@ export async function registerController(req, res) {
     const user = await registerUser(req.body);
     res.status(201).json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message || 'Authentication failed' });
+    if (error.code === 'ER_DUP_ENTRY') {
+      // Gestion spécifique pour les erreurs de duplication
+      res.status(400).json({ error: 'Ce pseudo est déjà utilisé. Veuillez choisir un autre pseudo.' });
+    } else {
+      res.status(500).json({ error: error.message || 'Authentication failed' });
+    }
   }
 }
 

@@ -77,10 +77,121 @@ export async function deletelolAccountFromUser(userId, riotid) {
 
 export async function getUserGroups(userId) {
   const query = `
-    SELECT *
-    FROM groups
-    where id_group = (select id_group from group_members where id_User = ?)
+    SELECT g.id_group, g.name_groups, g.description_group, g.created_at
+    FROM group_members gm
+    JOIN group_lol g ON gm.group_id = g.id_group
+    WHERE gm.id_account = ?
   `;
   const [rows] = await db.execute(query, [userId]);
   return rows;
+}
+
+export async function getGroup(groupId) {
+  if (typeof groupId !== 'string') {
+    throw new Error('Invalid groupId. It must be a string.');
+  }
+
+  const query = `
+    SELECT g.id_group, g.name_groups, g.description_group, g.created_at
+    FROM group_lol g
+    WHERE g.id_group = ?
+  `;
+  const [rows] = await db.execute(query, [groupId]);
+  return rows[0];
+}
+
+export async function createGroup(groupName, description, userId) {
+  const query = `
+    INSERT INTO group_lol (id_group, name_groups, description_group, created_by_User)
+    VALUES (UUID(), ?, ?, ?)
+  `;
+  const [result] = await db.execute(query, [groupName, description, userId]);
+
+  if (result.affectedRows === 0) {
+    throw new Error('Failed to insert group into the database.');
+  }
+
+  const groupIdQuery = `
+    SELECT id_group
+    FROM group_lol
+    WHERE created_by_User = ?
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+  const [groupRows] = await db.execute(groupIdQuery, [userId]);
+  const groupId = groupRows[0]?.id_group;
+
+  if (!groupId) {
+    throw new Error('Failed to retrieve group ID after creation.');
+  }
+
+  const query2 = `
+    INSERT INTO group_members (id_group_members, group_id, id_account)
+    VALUES (UUID(), ?, ?)
+  `;
+  await db.execute(query2, [groupId, userId]);
+
+  return { message: 'Group created successfully and user added as member' };
+}
+
+export async function getAlllolAccountFromUserFromGroup(groupId) {
+  const query = `
+    SELECT la.riotid, la.tier, la.rank, la.wins, la.losses
+    FROM group_members gm
+    JOIN user_lol_account ula ON gm.id_account = ula.id_User
+    JOIN lol_account la ON ula.summonerId = la.summonerId
+    WHERE gm.group_id = ?
+  `;
+  const [rows] = await db.execute(query, [groupId]);
+  return rows;
+}
+
+export async function getGroupMembers(groupId) {
+  const query = `
+    SELECT u.id_User, u.name_User
+    FROM group_members gm
+    JOIN Users u ON gm.id_account = u.id_User
+    WHERE gm.group_id = ?
+  `;
+  const [rows] = await db.execute(query, [groupId]);
+  return rows;
+}
+
+export async function getAllLolAccountsFromGroup(groupId) {
+  const query = `
+    SELECT la.riotid, la.tier, la.rank, la.wins, la.losses, u.name_User
+    FROM group_members gm
+    JOIN user_lol_account ula ON gm.id_account = ula.id_User
+    JOIN lol_account la ON ula.summonerId = la.summonerId
+    JOIN Users u ON ula.id_User = u.id_User
+    WHERE gm.group_id = ?
+  `;
+
+  try {
+    const [rows] = await db.execute(query, [groupId]);
+    return rows;
+  } catch (error) {
+    console.error("Error in getAllLolAccountsFromGroup:", error.message);
+    throw new Error("Failed to fetch LoL accounts for the group.");
+  }
+}
+
+export async function addUserToGroup(name_User, groupId) {
+  const query = `
+    SELECT id_User
+    FROM Users
+    WHERE name_User = ?
+  `;
+  const [rows] = await db.execute(query, [name_User]);
+  if (rows.length === 0) {
+    throw new Error('User not found.');
+  }
+  const userId = rows[0].id_User;
+
+  const query2 = `
+    INSERT INTO group_members (id_group_members, group_id, id_account)
+    VALUES (UUID(), ?, ?)
+  `;
+  await db.execute(query2, [groupId, userId]);
+  return { message: "User added to group successfully." };
 }

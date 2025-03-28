@@ -6,6 +6,7 @@ import Login from "./pages/Login"; // Import de la page Login
 import Register from "./pages/Register"; // Import de la page Register
 import Profile from "./pages/Profile"; // Import de la page Profile
 import Groups from "./pages/Groups"; // Import de la page Groups
+import GroupDetails from "./pages/GroupDetails";
 
 
 createRoot(document.getElementById("app") as HTMLElement).render(
@@ -17,6 +18,7 @@ createRoot(document.getElementById("app") as HTMLElement).render(
         <Route path="/register" element={<Register />} /> {/* Add this line */}
         <Route path="/profile" element={<Profile />} /> {/* Add this line */}
         <Route path="/groups" element={<Groups />} /> {/* Add this line */}
+        <Route path="/group/:groupId" element={<GroupDetails />} /> {/* Add this line */}
       </Routes>
     </BrowserRouter>
   </StrictMode>,
