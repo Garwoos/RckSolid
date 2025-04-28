@@ -1,5 +1,5 @@
 import express from 'express';
-import { addLolAccountToUserController, getAllUsersController, addLolAccountController, getLolAccountByIdController, getLinkedLolAccountsController, deletelolAccountFromUserController, createGroupController, getUserGroupsController, getGroupMembersController } from '../controllers/dbController.js'; // Assurez-vous que le chemin est correct
+import { addLolAccountToUserController, getAllUsersController, addLolAccountController, getLolAccountByIdController, getLinkedLolAccountsController, deletelolAccountFromUserController, createGroupController, getUserGroupsController, getGroupMembersController, getAvailabilityController, setAvailabilityController, deleteAvailabilityController } from '../controllers/dbController.js'; // Assurez-vous que le chemin est correct
 import { getGroup, getAllLolAccountsFromGroup, addUserToGroup } from '../services/dbService.js'; // Added addUserToGroup
 
 const router = express.Router();
@@ -88,5 +88,14 @@ router.post('/group/:groupId/user/:name_User', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Route pour récupérer les disponibilités d'un groupe
+router.get('/group/:groupId/availability', getAvailabilityController);
+
+// Route pour définir une disponibilité
+router.post('/group/:groupId/availability', setAvailabilityController);
+
+// Route pour supprimer une disponibilité
+router.delete('/group/:groupId/availability', deleteAvailabilityController);
 
 export default router;

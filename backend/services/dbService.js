@@ -159,7 +159,7 @@ export async function getGroupMembers(groupId) {
 
 export async function getAllLolAccountsFromGroup(groupId) {
   const query = `
-    SELECT la.riotid, la.tier, la.rank, la.wins, la.losses, u.name_User
+    SELECT la.riotid, la.tier, la.rank, la.leaguePoints, la.wins, la.losses, u.name_User
     FROM group_members gm
     JOIN user_lol_account ula ON gm.id_account = ula.id_User
     JOIN lol_account la ON ula.summonerId = la.summonerId
@@ -194,4 +194,25 @@ export async function addUserToGroup(name_User, groupId) {
   `;
   await db.execute(query2, [groupId, userId]);
   return { message: "User added to group successfully." };
+}
+
+export async function getAvailabilityByGroup(groupId) {
+  const query = `
+    SELECT a.day_of_week, a.hour_of_day, u.id_User, u.name_User
+    FROM availability a
+    JOIN Users u ON a.user_id = u.id_User
+    WHERE a.group_id = ?
+  `;
+  const [rows] = await db.execute(query, [groupId]);
+  return rows;
+}
+
+export async function setAvailability(groupId, userId, dayOfWeek, hourOfDay) {
+  const query = `
+    INSERT INTO availability (id_availability, group_id, user_id, day_of_week, hour_of_day)
+    VALUES (UUID(), ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE id_availability = id_availability
+  `;
+  await db.execute(query, [groupId, userId, dayOfWeek, hourOfDay]);
+  return { message: "Availability updated successfully." };
 }

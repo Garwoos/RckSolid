@@ -72,3 +72,5 @@
 {"timestamp":"2025-04-28T12:57:36.301Z","level":"error","message":"Invalid token: jwt expired"}
 {"timestamp":"2025-04-28T12:57:36.309Z","level":"error","message":"Invalid token: jwt expired"}
 >>>>>>> 3896377c351cb19def6a57894601f3a1fe5afa2b
+{"timestamp":"2025-04-28T18:45:02.284Z","level":"error","message":"Invalid token: jwt expired"}
+{"timestamp":"2025-04-28T18:45:02.289Z","level":"error","message":"Invalid token: jwt expired"}

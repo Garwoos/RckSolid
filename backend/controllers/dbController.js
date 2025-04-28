@@ -1,4 +1,5 @@
-import { getAllUsers, addLolAccount, getLolAccountById, addLolAccountToUser, getLinkedLolAccounts, deletelolAccountFromUser, createGroup, getUserGroups, getGroupMembers } from '../services/dbService.js'; // Added getGroupMembers
+import { getAllUsers, addLolAccount, getLolAccountById, addLolAccountToUser, getLinkedLolAccounts, deletelolAccountFromUser, createGroup, getUserGroups, getGroupMembers, getAvailabilityByGroup, setAvailability } from '../services/dbService.js'; // Added getGroupMembers, getAvailabilityByGroup, setAvailability
+import db from '../config/dbConfig.js'; // Ensure db is imported for validation
 
 export async function getAllUsersController(req, res) { // Assurez-vous que cette fonction est bien exportée
     try {
@@ -205,6 +206,51 @@ export async function addUserToGroupController(req, res) {
     res.status(201).json(result);
   } catch (error) {
     console.error("Error adding user to group:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function getAvailabilityController(req, res) {
+  try {
+    const { groupId } = req.params;
+    const availability = await getAvailabilityByGroup(groupId);
+    res.status(200).json(availability);
+  } catch (error) {
+    console.error("Error fetching availability:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function setAvailabilityController(req, res) {
+  try {
+    const { groupId, userId, dayOfWeek, hourOfDay } = req.body;
+
+    // Validate that the user exists
+    const userCheckQuery = `SELECT id_User FROM Users WHERE id_User = ?`;
+    const [userRows] = await db.execute(userCheckQuery, [userId]);
+    if (userRows.length === 0) {
+      return res.status(400).json({ error: "Invalid user ID. User does not exist." });
+    }
+
+    await setAvailability(groupId, userId, dayOfWeek, hourOfDay);
+    res.status(200).json({ message: "Availability updated successfully." });
+  } catch (error) {
+    console.error("Error setting availability:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function deleteAvailabilityController(req, res) {
+  try {
+    const { groupId, userId, dayOfWeek, hourOfDay } = req.body;
+    const query = `
+      DELETE FROM availability
+      WHERE group_id = ? AND user_id = ? AND day_of_week = ? AND hour_of_day = ?
+    `;
+    await db.execute(query, [groupId, userId, dayOfWeek, hourOfDay]);
+    res.status(200).json({ message: "Availability deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting availability:", error.message);
     res.status(500).json({ error: error.message });
   }
 }

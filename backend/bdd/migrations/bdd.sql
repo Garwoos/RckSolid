@@ -53,9 +53,21 @@ CREATE TABLE IF NOT EXISTS group_members (
   id_group_members VARCHAR(100) PRIMARY KEY, 
   group_id VARCHAR(100) NOT NULL,
   id_account VARCHAR(100) NOT NULL,
-  joined_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- TIMESTAMPTZ remplacé par DATETIME
+  joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (group_id) REFERENCES group_lol(id_group) ON DELETE CASCADE,
   FOREIGN KEY (id_account) REFERENCES Users(id_User) ON DELETE CASCADE,
-    -- Contraintes d'unicité
-  UNIQUE (id_group_members, group_id, id_account) -- Un seul membre par groupe
+  UNIQUE (group_id, id_account) -- Unicité par groupe et utilisateur
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Table des disponibilités des membres
+CREATE TABLE IF NOT EXISTS availability (
+  id_availability VARCHAR(100) PRIMARY KEY,
+  group_id VARCHAR(100) NOT NULL,
+  user_id VARCHAR(100) NOT NULL,
+  day_of_week TINYINT NOT NULL, -- 0 = Dimanche, 6 = Samedi
+  hour_of_day TINYINT NOT NULL, -- 0 = Minuit, 23 = 23h
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (group_id) REFERENCES group_lol(id_group) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES Users(id_User) ON DELETE CASCADE,
+  UNIQUE (group_id, user_id, day_of_week, hour_of_day) -- Unicité par groupe, utilisateur, jour et heure
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -136,13 +136,53 @@ export default function Groups() {
               Vous n'avez pas encore rejoint ou créé de groupes.
             </p>
             <Button
-              onClick={handleCreateGroup}
+              onClick={handleCreateGroup} // Assurez-vous que cette fonction est correctement appelée
               className="bg-blue-500 text-white hover:bg-blue-600"
             >
               Créer un Groupe
             </Button>
           </div>
         </main>
+        {showCreateGroupModal && ( // Ajoutez le modal ici pour qu'il soit accessible
+          <Modal onClose={handleCloseCreateGroupModal}>
+            <ModalContent>
+              <ModalHeader>
+                <h2 className="text-lg font-bold">Créer un Groupe</h2>
+              </ModalHeader>
+              <div className="p-4">
+                <label htmlFor="groupName" className="block text-sm font-medium mb-2">
+                  Nom du Groupe
+                </label>
+                <input
+                  id="groupName"
+                  type="text"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  className="w-full p-2 border rounded mb-4"
+                  placeholder="Entrez le nom du groupe"
+                />
+                <label htmlFor="groupDescription" className="block text-sm font-medium mb-2">
+                  Description
+                </label>
+                <textarea
+                  id="groupDescription"
+                  value={newGroupDescription}
+                  onChange={(e) => setNewGroupDescription(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  placeholder="Entrez une description"
+                />
+              </div>
+              <ModalFooter>
+                <Button onClick={handleSaveGroup} className="mr-2">
+                  Enregistrer
+                </Button>
+                <Button onClick={handleCloseCreateGroupModal} variant="secondary">
+                  Annuler
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        )}
       </div>
     );
   }

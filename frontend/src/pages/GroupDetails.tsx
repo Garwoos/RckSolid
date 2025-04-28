@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Header from "../components/Header";
 import { Button } from "../components/ui/button";
 import { Modal, ModalContent, ModalHeader, ModalFooter } from "../components/ui/modal";
+import GroupAgenda from "../components/GroupAgenda";
 
 export default function GroupDetails() {
   const { groupId } = useParams();
@@ -50,9 +51,11 @@ export default function GroupDetails() {
         if (!accountsResponse.ok) {
           throw new Error("Failed to fetch LoL accounts.");
         }
-
+        
         const accountsData = await accountsResponse.json();
         setLolAccounts(accountsData);
+
+        console.log(accountsData);
 
         // Fetch group members
         const membersResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/db/group/${String(groupId)}/users`, {
@@ -67,6 +70,28 @@ export default function GroupDetails() {
 
         const membersData = await membersResponse.json();
         setMembers(membersData);
+        console.log(membersData);
+
+        // fetch linked users for each account
+        const updatedAccountsData = await Promise.all(
+          accountsData.map(async (account: any) => {
+            const linkedUsersResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/db/lolaccounts/${account.riotid}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            if (!linkedUsersResponse.ok) {
+              throw new Error("Failed to fetch linked users.");
+            }
+
+            const linkedUsersData = await linkedUsersResponse.json();
+            return { ...account, linkedUsers: linkedUsersData };
+          })
+        );
+        setLolAccounts(updatedAccountsData);
+
+        console.log(updatedAccountsData);
       } catch (err: any) {
         setError(err.message || "An error occurred.");
       } finally {
@@ -128,8 +153,20 @@ export default function GroupDetails() {
                   {/* Left Section (70%) */}
                   <div className="flex-grow pr-4 w-7/10">
                     <h3 className="font-bold">{account.riotid}</h3>
-                    <p>{account.tier} {account.rank}</p>
+                    <p>{account.tier} {account.rank} ({account.lp} LP)</p>
                     <p>Wins: {account.wins} / Losses: {account.losses}</p>
+                    <p>Winrate: {((account.wins / (account.wins + account.losses)) * 100).toFixed(2)}%</p>
+                    {/* Display linked users */}
+                    <p className="mt-2 font-medium">Utilisateurs liés :</p>
+                    <ul className="list-disc list-inside">
+                      {account.linkedUsers && account.linkedUsers.length > 0 ? (
+                        account.linkedUsers.map((user) => (
+                          <li key={user.id_User}>{user.name_User}</li>
+                        ))
+                      ) : (
+                        <li>Aucun utilisateur lié</li>
+                      )}
+                    </ul>
                   </div>
                   {/* Right Section (30%) */}
                   <div className="flex-shrink-0 w-3/10 flex items-center justify-end">
@@ -163,6 +200,11 @@ export default function GroupDetails() {
               ))}
             </ul>
           </div>
+        </div>
+
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Agenda</h2>
+          <GroupAgenda groupId={groupId!} />
         </div>
       </main>
 
