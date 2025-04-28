@@ -62,21 +62,13 @@ export default function Groups() {
   }, []);
 
   const handleCreateGroup = () => {
-    setShowCreateGroupModal(true); // Open the modal directly
-  };
-
-  const handleViewGroup = (groupId: string) => {
-    navigate(`/group/${groupId}`); // Ensure the groupId is passed correctly
-  };
-
-  const handleOpenCreateGroupModal = () => {
-    setShowCreateGroupModal(true);
+    setShowCreateGroupModal(true); // Ouvre le modal
   };
 
   const handleCloseCreateGroupModal = () => {
-    setShowCreateGroupModal(false);
-    setNewGroupName("");
-    setNewGroupDescription("");
+    setShowCreateGroupModal(false); // Ferme le modal
+    setNewGroupName(""); // Réinitialise le champ du nom
+    setNewGroupDescription(""); // Réinitialise le champ de description
   };
 
   const handleSaveGroup = async () => {
@@ -90,8 +82,8 @@ export default function Groups() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          name: newGroupName,
-          description: newGroupDescription,
+          name: newGroupName, // Envoie le nom du groupe
+          description: newGroupDescription, // Envoie la description
           userId,
         }),
       });
@@ -100,8 +92,7 @@ export default function Groups() {
         throw new Error("Failed to create group.");
       }
 
-      console.log("Group created successfully."); // Log pour confirmer la création
-      // Refresh groups list
+      console.log("Group created successfully.");
       const groupsResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/db/userGroups/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -115,11 +106,15 @@ export default function Groups() {
       const groupsData = await groupsResponse.json();
       setGroups(groupsData);
 
-      handleCloseCreateGroupModal();
+      handleCloseCreateGroupModal(); // Ferme le modal après la création
     } catch (err: any) {
-      console.error("Error:", err.message); // Log des erreurs
+      console.error("Error:", err.message);
       setError(err.message || "An error occurred while creating the group.");
     }
+  };
+
+  const handleViewGroup = (groupId: string) => {
+    navigate(`/group/${groupId}`); // Ensure the groupId is passed correctly
   };
 
   if (loading) {
@@ -201,7 +196,7 @@ export default function Groups() {
                 id="groupName"
                 type="text"
                 value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
+                onChange={(e) => setNewGroupName(e.target.value)} // Met à jour l'état
                 className="w-full p-2 border rounded mb-4"
                 placeholder="Entrez le nom du groupe"
               />
@@ -211,7 +206,7 @@ export default function Groups() {
               <textarea
                 id="groupDescription"
                 value={newGroupDescription}
-                onChange={(e) => setNewGroupDescription(e.target.value)}
+                onChange={(e) => setNewGroupDescription(e.target.value)} // Met à jour l'état
                 className="w-full p-2 border rounded"
                 placeholder="Entrez une description"
               />

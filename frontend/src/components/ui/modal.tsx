@@ -8,15 +8,15 @@ interface ModalProps {
 export function Modal({ children, onClose }: ModalProps) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md relative">
         {children}
+        <button
+          className="absolute top-4 right-4 text-black text-xl"
+          onClick={onClose} // Ferme le modal
+        >
+          &times;
+        </button>
       </div>
-      <button
-        className="absolute top-4 right-4 text-white text-xl"
-        onClick={onClose}
-      >
-        &times;
-      </button>
     </div>
   );
 }
