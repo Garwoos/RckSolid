@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-0c1c5263-9659-41a2-8f2c-37a726793a65';
+const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-ac7af7d1-e16a-4777-af31-24f0e9f3cd87';
 const REGION = 'europe'; // Remplacez 'europe' par 'euw1' ou une autre région valide
 
 if (!RIOT_API_KEY) {
