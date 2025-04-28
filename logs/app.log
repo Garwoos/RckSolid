@@ -55,6 +55,7 @@
 {"timestamp":"2025-03-27T13:53:50.071Z","level":"error","message":"Invalid token: jwt expired"}
 {"timestamp":"2025-03-27T13:53:50.077Z","level":"error","message":"Invalid token: jwt expired"}
 {"timestamp":"2025-03-27T14:03:12.319Z","level":"error","message":"Invalid token: jwt expired"}
+<<<<<<< HEAD
 {"timestamp":"2025-03-28T16:51:18.585Z","level":"error","message":"Invalid token: jwt expired"}
 {"timestamp":"2025-03-28T16:51:18.593Z","level":"error","message":"Invalid token: jwt expired"}
 {"timestamp":"2025-03-28T16:51:20.367Z","level":"error","message":"Invalid token: jwt expired"}
@@ -63,3 +64,11 @@
 {"timestamp":"2025-04-28T16:39:31.321Z","level":"error","message":"Invalid token: jwt expired"}
 {"timestamp":"2025-04-28T16:39:32.684Z","level":"error","message":"Invalid token: jwt expired"}
 {"timestamp":"2025-04-28T16:39:32.688Z","level":"error","message":"Invalid token: jwt expired"}
+=======
+{"timestamp":"2025-04-28T09:39:05.640Z","level":"error","message":"Invalid token: jwt expired"}
+{"timestamp":"2025-04-28T09:39:05.652Z","level":"error","message":"Invalid token: jwt expired"}
+{"timestamp":"2025-04-28T09:39:09.476Z","level":"error","message":"Invalid token: jwt expired"}
+{"timestamp":"2025-04-28T09:39:09.480Z","level":"error","message":"Invalid token: jwt expired"}
+{"timestamp":"2025-04-28T12:57:36.301Z","level":"error","message":"Invalid token: jwt expired"}
+{"timestamp":"2025-04-28T12:57:36.309Z","level":"error","message":"Invalid token: jwt expired"}
+>>>>>>> 3896377c351cb19def6a57894601f3a1fe5afa2b
